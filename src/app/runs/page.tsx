@@ -1,13 +1,18 @@
+"use client";
+
 import Link from "next/link";
-import { testRuns, countByStatus } from "@/lib/dummy-data";
+import { countByStatus } from "@/lib/dummy-data";
 import { Badge } from "@/components/ui/badge";
+import { useRunStore } from "@/lib/store";
 
 export default function RunsPage() {
+  const runs = useRunStore((s) => s.runs);
+
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
       <h1 className="text-xl font-bold mb-6">Test Runs</h1>
       <div className="space-y-2">
-        {testRuns.map((run) => {
+        {runs.map((run) => {
           const stats = countByStatus(run.sections);
           return (
             <Link
