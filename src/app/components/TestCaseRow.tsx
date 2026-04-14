@@ -64,7 +64,7 @@ export default function TestCaseRow({
   const [editTitle, setEditTitle] = useState(title);
   const [editSteps, setEditSteps] = useState<string[]>(detail.length > 0 ? detail : [""]);
 
-  const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(detail.length > 0);
 
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [editComment, setEditComment] = useState(comment);
@@ -172,7 +172,7 @@ export default function TestCaseRow({
 
   /* ── View mode ───────────────────────────────────── */
   return (
-    <div className="border-b border-gray-200 hover:bg-gray-50/60 transition-colors group">
+    <div id={`tc-${code}`} className="border-b border-gray-200 hover:bg-gray-50/60 transition-colors group scroll-mt-24">
       {/* Main row */}
       <div className="flex items-center gap-3 px-4 py-2.5">
         {/* Chevron toggle */}

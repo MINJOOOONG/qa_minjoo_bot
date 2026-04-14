@@ -10,7 +10,15 @@ export default function RunsPage() {
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4">
-      <h1 className="text-xl font-bold mb-6">Test Runs</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-bold">Test Runs</h1>
+        <Link
+          href="/sessions"
+          className="text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          Sessions →
+        </Link>
+      </div>
       <div className="space-y-2">
         {runs.map((run) => {
           const stats = countByStatus(run.sections);

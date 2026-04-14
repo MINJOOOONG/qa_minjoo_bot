@@ -101,6 +101,49 @@ export const testRuns: TestRun[] = [
   },
 ];
 
+// ── Change Request / Work Session ──────────────────
+
+export type ChangeType = "add" | "update" | "delete";
+
+export type ChangeLog = {
+  id: string;
+  type: ChangeType;
+  sectionName: string;
+  testCaseCode: string;
+  testCaseTitle: string;
+  steps?: string[];
+  createdAt: string;
+};
+
+export type WorkSession = {
+  id: string;
+  date: string;
+  startedAt: string;
+  endedAt: string | null;
+  runId: string;
+  changes: ChangeLog[];
+};
+
+export function groupChangesBySection(changes: ChangeLog[]) {
+  const map = new Map<string, ChangeLog[]>();
+  for (const c of changes) {
+    const list = map.get(c.sectionName) ?? [];
+    list.push(c);
+    map.set(c.sectionName, list);
+  }
+  return map;
+}
+
+export function groupChangesByType(changes: ChangeLog[]) {
+  const map = new Map<ChangeType, ChangeLog[]>();
+  for (const c of changes) {
+    const list = map.get(c.type) ?? [];
+    list.push(c);
+    map.set(c.type, list);
+  }
+  return map;
+}
+
 export function getTestRun(id: string): TestRun | undefined {
   return testRuns.find((r) => r.id === id);
 }

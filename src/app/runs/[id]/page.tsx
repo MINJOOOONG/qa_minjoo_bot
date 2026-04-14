@@ -3,9 +3,11 @@
 import { useState, use } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { countByStatus } from "@/lib/dummy-data";
+import { countByStatus, groupChangesBySection } from "@/lib/dummy-data";
 import { useRunStore } from "@/lib/store";
 import SectionBlock from "@/app/components/SectionBlock";
+import SessionControl from "@/app/components/SessionControl";
+import SectionSummaryBlock from "@/app/components/SectionSummaryBlock";
 
 export default function RunDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -23,6 +25,19 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
     deleteTestCase,
   } = useRunStore();
 
+  // Find the most recent ended session for this run
+  const lastEndedSession = useRunStore((s) => {
+    const ended = s.sessions
+      .filter((sess) => sess.runId === id && sess.endedAt !== null)
+      .sort((a, b) => new Date(b.endedAt!).getTime() - new Date(a.endedAt!).getTime());
+    return ended[0] ?? null;
+  });
+  const activeSessionId = useRunStore((s) => s.activeSessionId);
+
+  // Show summary when: no active session AND there's an ended session for this run
+  const showSummary = !activeSessionId && lastEndedSession !== null;
+
+  const [copied, setCopied] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [editName, setEditName] = useState("");
 
@@ -118,6 +133,11 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
         </div>
       </div>
 
+      {/* Session Control */}
+      <div className="mb-6">
+        <SessionControl runId={id} />
+      </div>
+
       {/* Sections */}
       <div>
         {run.sections.map((section) => (
@@ -141,6 +161,88 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
           + 섹션 추가
         </button>
       </div>
+
+      {/* Work Session Summary */}
+      {showSummary && lastEndedSession && (() => {
+        const bySection = groupChangesBySection(lastEndedSession.changes);
+        const totalChanges = lastEndedSession.changes.length;
+
+        function buildCopyText() {
+          const lines: string[] = [`[업무 요약] ${lastEndedSession!.date}`];
+          lines.push("");
+          const typeLabels = { update: "수정됨", delete: "삭제됨", add: "추가됨" } as const;
+          const typeIcons = { update: "🔧", delete: "❌", add: "➕" } as const;
+          for (const [section, changes] of bySection.entries()) {
+            lines.push(`[${section}]`);
+            const grouped = new Map<string, typeof changes>();
+            for (const c of changes) {
+              const list = grouped.get(c.type) ?? [];
+              list.push(c);
+              grouped.set(c.type, list);
+            }
+            for (const type of ["update", "delete", "add"] as const) {
+              const items = grouped.get(type);
+              if (!items || items.length === 0) continue;
+              lines.push(`${typeIcons[type]} ${typeLabels[type]}`);
+              for (const c of items) {
+                lines.push(`- ${c.testCaseCode}: ${c.testCaseTitle}`);
+                if (type !== "delete" && c.steps && c.steps.length > 0) {
+                  for (let i = 0; i < c.steps.length; i++) {
+                    lines.push(`  ${i + 1}. ${c.steps[i]}`);
+                  }
+                }
+              }
+            }
+            lines.push("");
+          }
+          return lines.join("\n");
+        }
+
+        return (
+          <div className="mt-8 border border-orange-200 rounded-lg bg-orange-50/30">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-orange-200">
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-gray-800">업무 요약</h2>
+                <span className="text-[11px] text-gray-500">{lastEndedSession.date}</span>
+                {totalChanges > 0 && (
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-600 font-medium">
+                    {totalChanges}건
+                  </span>
+                )}
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(buildCopyText());
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+                className="text-xs px-2.5 py-1 text-gray-500 hover:text-gray-700 hover:bg-white border border-gray-200 rounded transition-colors cursor-pointer flex items-center gap-1"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                </svg>
+                {copied ? "복사됨!" : "복사"}
+              </button>
+            </div>
+            <div className="p-4">
+              {totalChanges === 0 ? (
+                <p className="text-xs text-gray-400 text-center py-4">변경 사항이 없습니다.</p>
+              ) : (
+                <div className="space-y-3">
+                  {Array.from(bySection.entries()).map(([sectionName, changes]) => (
+                    <SectionSummaryBlock
+                      key={sectionName}
+                      sectionName={sectionName}
+                      changes={changes}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
