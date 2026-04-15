@@ -166,15 +166,15 @@ export default function RunDetailPage({ params }: { params: Promise<{ id: string
         <main className={`flex-1 overflow-y-auto p-4 ${showSidebarChanges ? "" : ""}`}>
           {run.sections.map((section) => (
             <SectionBlock
-              key={section.name}
-              name={section.name}
-              cases={section.cases}
+              key={section.id}
+              section={section}
+              depth={0}
               onStatusChange={(caseId, status) => updateStatus(id, caseId, status)}
               onEdit={(caseId, code, title, detail) => editTestCase(id, caseId, code, title, detail)}
               onUpdateComment={(caseId, comment) => updateComment(id, caseId, comment)}
-              onSectionRename={(newName) => renameSection(id, section.name, newName)}
-              onSectionDelete={() => deleteSection(id, section.name)}
-              onAddTestCase={() => addTestCase(id, section.name)}
+              onSectionRename={(sectionId, newName) => renameSection(id, sectionId, newName)}
+              onSectionDelete={(sectionId) => deleteSection(id, sectionId)}
+              onAddTestCase={(sectionId) => addTestCase(id, sectionId)}
               onDeleteTestCase={(caseId) => deleteTestCase(id, caseId)}
             />
           ))}

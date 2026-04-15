@@ -31,6 +31,7 @@ function TrashIcon() {
 }
 
 interface TestCaseRowProps {
+  id: string;
   code: string;
   title: string;
   detail: string[];
@@ -43,7 +44,7 @@ interface TestCaseRowProps {
 }
 
 export default function TestCaseRow({
-  code, title, detail: rawDetail, comment, status,
+  id: tcId, code, title, detail: rawDetail, comment, status,
   onStatusChange, onEdit, onUpdateComment, onDelete,
 }: TestCaseRowProps) {
   const detail = Array.isArray(rawDetail) ? rawDetail : [];
@@ -53,7 +54,7 @@ export default function TestCaseRow({
   const [editTitle, setEditTitle] = useState(title);
   const [editSteps, setEditSteps] = useState<string[]>(detail.length > 0 ? detail : [""]);
 
-  const [isDetailOpen, setIsDetailOpen] = useState(detail.length > 0);
+  const [isDetailOpen, setIsDetailOpen] = useState(true);
 
   const [isCommentOpen, setIsCommentOpen] = useState(false);
   const [editComment, setEditComment] = useState(comment);
@@ -156,7 +157,7 @@ export default function TestCaseRow({
   /* ── View mode ───────────────────────────────────── */
   return (
     <>
-      <tr id={`tc-${code}`} className="hover:bg-gray-50/80 transition-colors group scroll-mt-32 border-b border-gray-100 last:border-b-0">
+      <tr id={`tc-${tcId}`} data-tc-code={code} className="hover:bg-gray-50/80 transition-colors group scroll-mt-32 border-b border-gray-100 last:border-b-0">
         {/* CODE */}
         <td className="px-3 py-1.5 w-16 align-top">
           <div className="flex items-center gap-1">
@@ -261,7 +262,7 @@ export default function TestCaseRow({
           <td colSpan={3} className="pb-1.5 pt-0 pr-3">
             <ol className="space-y-px">
               {detail.map((step, idx) => (
-                <li key={idx} className="flex items-baseline gap-1.5 text-[11px] text-gray-500 leading-snug">
+                <li key={idx} className="flex items-baseline gap-1.5 text-[11px] text-gray-500 leading-snug border-b border-gray-100 last:border-b-0 pb-1 pt-1">
                   <span className="text-gray-300 font-mono text-[10px] shrink-0 w-3 text-right">{idx + 1}.</span>
                   <span>{step}</span>
                 </li>

@@ -10,7 +10,7 @@ const TYPE_CONFIG: Record<string, { label: string; icon: string; color: string }
 };
 
 function scrollToTC(code: string) {
-  const el = document.getElementById(`tc-${code}`);
+  const el = document.querySelector(`[data-tc-code="${code}"]`) as HTMLElement | null;
   if (!el) return;
   el.scrollIntoView({ behavior: "smooth", block: "center" });
   el.classList.add("bg-orange-50");
